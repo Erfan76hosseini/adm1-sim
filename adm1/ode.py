@@ -285,44 +285,22 @@ def ADM1_ODE(t, state_zero, state_input):
 
   diff_S_anion = q_ad / V_liq * (S_anion_in - S_anion)  # eq26
 
-  if DAE_switch == 1 :
 
-    diff_S_h2 = 0
 
-    # Differential equations 27 to 32 (ion states, only for ODE implementation)
-    diff_S_va_ion = 0  # eq27
-
-    diff_S_bu_ion = 0  # eq28
-
-    diff_S_pro_ion = 0  # eq29
-
-    diff_S_ac_ion = 0  # eq30
-
-    diff_S_hco3_ion = 0  # eq31
-
-    diff_S_nh3 = 0  # eq32
-
-  else:
-
-    diff_S_h2 = q_ad / V_liq * (S_h2_in - S_h2) + (1 - Y_su) * f_h2_su * Rho_5 + (1 - Y_aa) * f_h2_aa * Rho_6 + (1 - Y_fa) * 0.3 * Rho_7 + (1 - Y_c4) * 0.15 * Rho_8 + (1 - Y_c4) * 0.2 * Rho_9 + (1 - Y_pro) * 0.43 * Rho_10 - Rho_12 - Rho_T_8  # eq8
+  diff_S_h2 = 0
 
     # Differential equations 27 to 32 (ion states, only for ODE implementation)
-    diff_S_va_ion = -Rho_A_4  # eq27
+  diff_S_va_ion = 0  # eq27
 
-    diff_S_bu_ion = -Rho_A_5  # eq28
+  diff_S_bu_ion = 0  # eq28
 
-    diff_S_pro_ion = -Rho_A_6  # eq29
+  diff_S_pro_ion = 0  # eq29
 
-    diff_S_ac_ion = -Rho_A_7  # eq30
+  diff_S_ac_ion = 0  # eq30
 
-    diff_S_hco3_ion = -Rho_A_10  # eq31
+  diff_S_hco3_ion = 0  # eq31
 
-    diff_S_nh3 = -Rho_A_11  # eq32
-
-    phi =  (S_cation + S_nh4_ion - S_hco3_ion - (S_ac_ion / 64) - (S_pro_ion / 112) - (S_bu_ion / 160) - (S_va_ion / 208) - S_anion)
-
-    S_H_ion = (-1 * phi / 2) + (0.5 * np.sqrt(phi ** 2 + 4 * K_w)) #this is just for ODE version
-
+  diff_S_nh3 = 0  # eq32
 
   # Gas phase equations: Differential equations 33 to 35
   diff_S_gas_h2 = (q_gas / V_gas * -1 * S_gas_h2) + (Rho_T_8 * V_liq / V_gas)  # eq33
