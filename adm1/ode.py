@@ -1,23 +1,10 @@
-"""
-Utilities extracted from the notebook:
-ADM1-coAD-v5 (FW&PPMS)-Aug062025- different q_gas no inhibition-Copy1.ipynb
+# adm1/ode.py
+from adm1.params import *  # imports model parameters and initial states
 
-This module is generated automatically to hold reusable functions/classes.
-You can now import from adm1.utils in your notebooks or scripts.
-"""
-# flake8: noqa
-# pylint: skip-file
-
-# ---- Imports extracted from notebook ----
-import numpy as np
-import scipy.integrate
-import copy
-import pandas as pd
-import matplotlib.pyplot as plt
-from scipy import integrate
-
-# ---- Functions ----
-def ADM1_ODE(t, state_zero):
+# Function for calculating the derivatives related to ADM1 system of equations from the Rosen et al (2006) BSM2 report.
+# state_zero: current dynamic state vector (length 42)
+# state_input: influent / feed state vector (length 30) for this timestep
+def ADM1_ODE(t, state_zero, state_input):
   global S_nh4_ion, S_co2, p_gas, q_gas, q_ch4
   S_su = state_zero[0]
   S_aa = state_zero[1]
@@ -349,95 +336,3 @@ def ADM1_ODE(t, state_zero):
 
   return diff_S_su, diff_S_aa, diff_S_fa, diff_S_va, diff_S_bu, diff_S_pro, diff_S_ac, diff_S_h2, diff_S_ch4, diff_S_IC, diff_S_IN, diff_S_I, diff_X_xc1, diff_X_ch1, diff_X_pr1, diff_X_li1, diff_X_xc2, diff_X_ch2, diff_X_pr2, diff_X_li2 ,diff_X_su, diff_X_aa, diff_X_fa, diff_X_c4, diff_X_pro, diff_X_ac, diff_X_h2, diff_X_I, diff_S_cation, diff_S_anion, diff_S_H_ion, diff_S_va_ion,  diff_S_bu_ion, diff_S_pro_ion, diff_S_ac_ion, diff_S_hco3_ion, diff_S_co2,  diff_S_nh3, diff_S_nh4_ion, diff_S_gas_h2, diff_S_gas_ch4, diff_S_gas_co2
 
-
-def simulate(t_step, solvermethod):
-  r = scipy.integrate.solve_ivp(ADM1_ODE, t_step, state_zero,method= solvermethod)
-  return r.y
-
-
-def DAESolve():
-  global S_va_ion, S_bu_ion, S_pro_ion, S_ac_ion, S_hco3_ion, S_nh3, S_H_ion, pH, p_gas_h2, S_h2
-  
-  ##  DAE calculations 
-  eps = 0.0000001
-  
-  prevS_H_ion = S_H_ion
-  
-
-  #initial values for Newton-Raphson solver parameter
-  shdelta = 1.0
-  shgradeq = 1.0
-  S_h2delta = 1.0
-  S_h2gradeq = 1.0
-  tol = 10 ** (-12) #solver accuracy tolerance
-  maxIter = 1000 #maximum number of iterations for solver
-  i = 1
-  j = 1
-  
-  ## DAE solver for S_H_ion from Rosen et al. (2006)
-  while ((shdelta > tol or shdelta < -tol) and (i <= maxIter)):
-    S_va_ion = K_a_va * S_va / (K_a_va + S_H_ion)
-    S_bu_ion = K_a_bu * S_bu / (K_a_bu + S_H_ion)
-    S_pro_ion = K_a_pro * S_pro / (K_a_pro + S_H_ion)
-    S_ac_ion = K_a_ac * S_ac / (K_a_ac + S_H_ion)
-    S_hco3_ion = K_a_co2 * S_IC / (K_a_co2 + S_H_ion)
-    S_nh3 = K_a_IN * S_IN / (K_a_IN + S_H_ion)
-    shdelta = S_cation + (S_IN - S_nh3) + S_H_ion - S_hco3_ion - S_ac_ion / 64.0 - S_pro_ion / 112.0 - S_bu_ion / 160.0 - S_va_ion / 208.0 - K_w / S_H_ion - S_anion
-    shgradeq = 1 + K_a_IN * S_IN / ((K_a_IN + S_H_ion) * (K_a_IN + S_H_ion)) + K_a_co2 * S_IC / ((K_a_co2 + S_H_ion) * (K_a_co2 + S_H_ion)) \
-              + 1 / 64.0 * K_a_ac * S_ac / ((K_a_ac + S_H_ion) * (K_a_ac + S_H_ion)) \
-              + 1 / 112.0 * K_a_pro * S_pro / ((K_a_pro + S_H_ion) * (K_a_pro + S_H_ion)) \
-              + 1 / 160.0 * K_a_bu * S_bu / ((K_a_bu + S_H_ion) * (K_a_bu + S_H_ion)) \
-              + 1 / 208.0 * K_a_va * S_va / ((K_a_va + S_H_ion) * (K_a_va + S_H_ion)) \
-              + K_w / (S_H_ion * S_H_ion)
-    S_H_ion = S_H_ion - shdelta / shgradeq
-    if S_H_ion <= 0:
-        S_H_ion = tol
-    i+=1
-  
-  # pH calculation
-  pH = - np.log10(S_H_ion)
-  
-  #DAE solver for S_h2 from Rosen et al. (2006) 
-  while ((S_h2delta > tol or S_h2delta < -tol) and (j <= maxIter)):
-    
-    #I_pH_aa = (K_pH_aa ** nn_aa) / (prevS_H_ion ** nn_aa + K_pH_aa ** nn_aa)
-    #I_pH_h2 = (K_pH_h2 ** n_h2) / (prevS_H_ion ** n_h2 + K_pH_h2 ** n_h2)
-    #I_IN_lim = 1 / (1 + (K_S_IN / S_IN))
-    #I_h2_fa = 1 / (1 + (S_h2 / K_I_h2_fa))
-    #I_h2_c4 = 1 / (1 + (S_h2 / K_I_h2_c4))
-    #I_h2_pro = 1 / (1 + (S_h2 / K_I_h2_pro))
-    
-    
-    I_pH_aa = 1
-    I_pH_h2 = 1
-    I_IN_lim = 1 
-    I_h2_fa = 1
-    I_h2_c4 = 1
-    I_h2_pro = 1
-  
-    I_5 = I_pH_aa * I_IN_lim
-    I_6 = I_5
-    I_7 = I_pH_aa * I_IN_lim * I_h2_fa
-    I_8 = I_pH_aa * I_IN_lim * I_h2_c4
-    I_9 = I_8
-    I_10 = I_pH_aa * I_IN_lim * I_h2_pro
-  
-    I_12 = I_pH_h2 * I_IN_lim
-    
-
-    
-    Rho_5 = k_m_su * (S_su / (K_S_su + S_su)) * X_su * I_5  # Uptake of sugars
-    Rho_6 = k_m_aa * (S_aa / (K_S_aa + S_aa)) * X_aa * I_6  # Uptake of amino-acids
-    Rho_7 = k_m_fa * (S_fa / (K_S_fa + S_fa)) * X_fa * I_7  # Uptake of LCFA (long-chain fatty acids)
-    Rho_8 = k_m_c4 * (S_va / (K_S_c4 + S_va)) * X_c4 * (S_va / (S_bu + S_va+ 1e-6)) * I_8  # Uptake of valerate
-    Rho_9 = k_m_c4 * (S_bu / (K_S_c4 + S_bu)) * X_c4 * (S_bu / (S_bu + S_va+ 1e-6)) * I_9  # Uptake of butyrate
-    Rho_10 = k_m_pro * (S_pro / (K_S_pro + S_pro)) * X_pro * I_10  # Uptake of propionate
-    Rho_12 = k_m_h2 * (S_h2 / (K_S_h2 + S_h2)) * X_h2 * I_12  # Uptake of hydrogen
-    p_gas_h2 = S_gas_h2 * R * T_ad / 16
-    Rho_T_8 = k_L_a * (S_h2 - 16 * K_H_h2 * p_gas_h2)
-    S_h2delta = q_ad / V_liq * (S_h2_in - S_h2) + (1 - Y_su) * f_h2_su * Rho_5 + (1 - Y_aa) * f_h2_aa * Rho_6 + (1 - Y_fa) * 0.3 * Rho_7 + (1 - Y_c4) * 0.15 * Rho_8 + (1 - Y_c4) * 0.2 * Rho_9 + (1 - Y_pro) * 0.43 * Rho_10 - Rho_12 - Rho_T_8
-    S_h2gradeq = - 1.0 / V_liq * q_ad - 3.0 / 10.0 * (1 - Y_fa) * k_m_fa * S_fa / (K_S_fa + S_fa) * X_fa * I_pH_aa / (1 + K_S_IN / S_IN) / ((1 + S_h2 / K_I_h2_fa) * (1 + S_h2 / K_I_h2_fa)) / K_I_h2_fa - 3.0 / 20.0 * (1 - Y_c4) * k_m_c4 * S_va * S_va / (K_S_c4 + S_va) * X_c4 / (S_bu + S_va + eps) * I_pH_aa / (1 + K_S_IN / S_IN) / ((1 + S_h2 / K_I_h2_c4 ) * (1 + S_h2 / K_I_h2_c4 )) / K_I_h2_c4 - 1.0 / 5.0 * (1 - Y_c4) * k_m_c4 * S_bu * S_bu / (K_S_c4 + S_bu) * X_c4 / (S_bu + S_va + eps) * I_pH_aa / (1 + K_S_IN / S_IN) / ((1 + S_h2 / K_I_h2_c4 ) * (1 + S_h2 / K_I_h2_c4 )) / K_I_h2_c4 - 43.0 / 100.0 * (1 - Y_pro) * k_m_pro * S_pro / (K_S_pro + S_pro) * X_pro * I_pH_aa / (1 + K_S_IN / S_IN) / ((1 + S_h2 / K_I_h2_pro ) * (1 + S_h2 / K_I_h2_pro )) / K_I_h2_pro - k_m_h2 / (K_S_h2 + S_h2) * X_h2 * I_pH_h2 / (1 + K_S_IN / S_IN) + k_m_h2 * S_h2 / ((K_S_h2 + S_h2) * (K_S_h2 + S_h2)) * X_h2 * I_pH_h2 / (1 + K_S_IN / S_IN) - k_L_a
-    S_h2 = S_h2 - S_h2delta / S_h2gradeq
-    if S_h2 <= 0:
-        S_h2 = tol
-    j+=1
