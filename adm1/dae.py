@@ -1,7 +1,6 @@
-
-# adm1/dae.py
 import numpy as np
-from adm1.params import *  # imports constants only (rates, equilibrium constants, etc.)
+from adm1.params import *
+
 
 # Pure DAE solver. It DOES NOT read or mutate module-level state.
 # Inputs: current scalar state values needed for the algebraic subsystem.
