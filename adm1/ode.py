@@ -1,5 +1,5 @@
-# adm1/ode.py
 from adm1.params import *  # imports model parameters and initial states
+
 
 # Function for calculating the derivatives related to ADM1 system of equations from the Rosen et al (2006) BSM2 report.
 # state_zero: current dynamic state vector (length 42)
