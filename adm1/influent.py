@@ -1,57 +1,50 @@
 
 import numpy as np
 
+
 # Scenario / mixing fractions
 mixing_ratio: float = 0.99999  # feed1 / total (can be overridden per scenario)
 
 
-##############################
-##time definition
-days = 50
-timeSteps = days*24 #every 15 minutes 
-t = np.linspace(0, days, timeSteps) #sequence of timesteps as fractions of days
-
-
-#####################
 
 #####################
 
 q_ad =  500
 #q_ad =  1000
-
 q_ad1 =  mixing_ratio*q_ad #m^3.d^-1 initial flow rate (can be modified during the simulation by the control algorithm)
 q_ad2= q_ad-q_ad1
-
-
 density=1000  #kg/m3
-
 VS=0.1 #kg/kg
 VS_in=density*q_ad*VS*0.001   #tonne
-
-print(q_ad1, q_ad2, VS_in)
-
+print("q_ad1:", q_ad1, "q_ad2:", q_ad2, "VS_in:", VS_in)
 
 ######################
 
+
 # Physical parameter values used in BSM2 from the Rosen et al (2006) BSM2 report
-HRT=20  #days
+# OLR (Organic Loading Rate) calculation: OLR = VS_in * 1000 / (q_ad * HRT)
+# If you want to set OLR directly, comment the next line and set OLR as desired.
+OLR = 6  # [kg VS/m3/d] Default value, can be overridden
 
-V_liq =HRT*q_ad   #m^3
-V_gas =  0.088*V_liq #m^3
-#V_liq =  10000 #m^3
-#V_gas =  1000 #m^3
-V_ad = V_liq + V_gas #m^-3
-
+# Calculate HRT based on OLR, or set HRT directly if needed
+HRT = density * VS / OLR  # [days]
+V_liq = HRT * q_ad   # [m^3]
+V_gas = 0.1 * V_liq  # [m^3]
+V_ad = V_liq + V_gas # [m^3]
 
 print("V_liq", V_liq)
 print("V_gas", V_gas)
 print("V_ad", V_ad)
+print("OLR", OLR)
+print("HRT", HRT)
 
+# If you want to calculate OLR from VS_in, q_ad, and HRT:
+# OLR_calc = VS_in * 1000 / (q_ad * HRT)
+# print("OLR (calculated)", OLR_calc)
 
 
 ##variable definition
 # Steady-state input values (influent/feed) for BSM2 ADM1 from the Rosen et al (2006) BSM2 report
-
 
 S_su_in = 0.001 #kg COD.m^-3
 S_aa_in = 0.001 #kg COD.m^-3
@@ -66,8 +59,6 @@ S_IC_in = 0.04 #kmole C.m^-3
 S_IN_in = 0.01 #kmole N.m^-3
 S_I_in = 0.02 #kg COD.m^-3
 
-
-
 #______________Feed1 input_____________________
 
 X_xc1_in = mixing_ratio*0 #kg COD.m^-3
@@ -79,13 +70,10 @@ X_li1_in = mixing_ratio*9.997 #kg COD.m^-3
 
 variation_factor4=1
 
-
 X_xc2_total=variation_factor4*259.992
 X_ch2_fraction=0.79
 X_pr2_fraction=0.184
 X_li2_fraction=0.026
-
-
 
 X_xc2_in = (1-mixing_ratio)*0 #kg COD.m^-3
 X_ch2_in = (1-mixing_ratio)*X_ch2_fraction*X_xc2_total      #205.31 #kg COD.m^-3
@@ -102,7 +90,6 @@ X_pro_in = 0.0 #kg COD.m^-3
 X_ac_in = 0.0 #kg COD.m^-3
 X_h2_in = 0.0 #kg COD.m^-3
 X_I_in = 25.0 #kg COD.m^-3
-
 S_cation_in = 0.04 #kmole.m^-3
 S_anion_in = 0.02 #kmole.m^-3
 
