@@ -2,49 +2,81 @@
 import numpy as np
 
 
-# Scenario / mixing fractions
-mixing_ratio: float = 0.99999  # feed1 / total (can be overridden per scenario)
+
+# ---  Reactor Setup ---
+def calculate_influent(
+    q_ad_init=500,                # Initial influent flow rate [m^3/d]
+    density=1000,                # Influent density [kg/m^3]
+    water_fraction=0.97,         # Fraction of water in influent
+    evaporated_water_volume=350, # Water lost to evaporation [m^3/d]
+    mixing_ratio=0.99999,   # Fraction for feed 1 # feed1 / total (can be overridden per scenario)
+    OLR=5                     # Organic Loading Rate [kg VS/m3/d]
+):
+    """
+    Calculate influent and reactor parameters for ADM1.
+    Returns a dict with all relevant values.
+    """
+    # Volatile solids (VS) fraction and content
+    vs_frac = 1 - water_fraction  # [kg VS/kg total]
+    vs_content = vs_frac * q_ad_init  # [m^3/d] (approximate, if 1 kg VS ~ 1 L)
+
+    # Adjust for evaporation
+    water_content = water_fraction * q_ad_init - evaporated_water_volume  # [m^3/d]
+    q_ad = water_content + vs_content  # New total influent flow [m^3/d]
+
+    # Feed split
+    q_ad1 = mixing_ratio * q_ad
+    q_ad2 = q_ad - q_ad1
+
+    # Recalculate VS fraction after evaporation
+    vs_frac_actual = vs_content / q_ad if q_ad > 0 else 0
+    VS_in = density * q_ad * vs_frac_actual * 0.001  # [tonne/d]
+
+    # Hydraulic Retention Time (HRT) and reactor volumes
+    HRT = density * vs_frac_actual / OLR if OLR > 0 else 0  # [days]
+    V_liq = HRT * q_ad  # [m^3]
+    V_gas = 0.1 * V_liq # [m^3]
+    V_ad = V_liq + V_gas # [m^3]
+
+    return {
+        'q_ad': q_ad,
+        'q_ad1': q_ad1,
+        'q_ad2': q_ad2,
+        'vs_frac': vs_frac_actual,
+        'VS_in': VS_in,
+        'HRT': HRT,
+        'V_liq': V_liq,
+        'V_gas': V_gas,
+        'V_ad': V_ad,
+        'OLR': OLR,
+        'density': density,
+        'water_fraction': water_fraction,
+        'evaporated_water_volume': evaporated_water_volume,
+        'mixing_ratio': mixing_ratio
+    }
+
+# --- Set up influent for this scenario ---
+
+influent = calculate_influent()
+q_ad = influent['q_ad']
+q_ad1 = influent['q_ad1']
+q_ad2 = influent['q_ad2']
+VS = influent['vs_frac']
+VS_in = influent['VS_in']
+HRT = influent['HRT']
+V_liq = influent['V_liq']
+V_gas = influent['V_gas']
+V_ad = influent['V_ad']
+OLR = influent['OLR']
+density = influent['density']
+water_fraction = influent['water_fraction']
+evaporated_water_volume = influent['evaporated_water_volume']
+mixing_ratio=influent['mixing_ratio']
+
+# --- End  Reactor Setup ---
 
 
-
-#####################
-
-q_ad =  500
-#q_ad =  1000
-q_ad1 =  mixing_ratio*q_ad #m^3.d^-1 initial flow rate (can be modified during the simulation by the control algorithm)
-q_ad2= q_ad-q_ad1
-density=1000  #kg/m3
-VS=0.1 #kg/kg
-VS_in=density*q_ad*VS*0.001   #tonne
-print("q_ad1:", q_ad1, "q_ad2:", q_ad2, "VS_in:", VS_in)
-
-######################
-
-
-# Physical parameter values used in BSM2 from the Rosen et al (2006) BSM2 report
-# OLR (Organic Loading Rate) calculation: OLR = VS_in * 1000 / (q_ad * HRT)
-# If you want to set OLR directly, comment the next line and set OLR as desired.
-OLR = 6  # [kg VS/m3/d] Default value, can be overridden
-
-# Calculate HRT based on OLR, or set HRT directly if needed
-HRT = density * VS / OLR  # [days]
-V_liq = HRT * q_ad   # [m^3]
-V_gas = 0.1 * V_liq  # [m^3]
-V_ad = V_liq + V_gas # [m^3]
-
-print("V_liq", V_liq)
-print("V_gas", V_gas)
-print("V_ad", V_ad)
-print("OLR", OLR)
-print("HRT", HRT)
-
-# If you want to calculate OLR from VS_in, q_ad, and HRT:
-# OLR_calc = VS_in * 1000 / (q_ad * HRT)
-# print("OLR (calculated)", OLR_calc)
-
-
-##variable definition
-# Steady-state input values (influent/feed) for BSM2 ADM1 from the Rosen et al (2006) BSM2 report
+# --- Influent  ---
 
 S_su_in = 0.001 #kg COD.m^-3
 S_aa_in = 0.001 #kg COD.m^-3
@@ -141,10 +173,3 @@ input_labels = [
     "X_aa_in", "X_fa_in", "X_c4_in", "X_pro_in", "X_ac_in", "X_h2_in", "X_I_in", 
     "S_cation_in", "S_anion_in"
 ]
-
-
-print("\nState Input Values:")
-for label, value in zip(input_labels, state_input):
-    print(f"{label}: {value}")
-
-
