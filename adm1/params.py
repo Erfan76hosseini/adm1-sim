@@ -90,9 +90,9 @@ MESOPHILIC_HIGH_RATE = {
 MESOPHILIC_SOLIDS = {
 	"k_dis1": 0.5, #d^-1
     "k_dis2": 0.5,  #d^-1
-	"k_hyd_ch1": 10, #d^-1
-	"k_hyd_pr1": 10, #d^-1
-	"k_hyd_li1": 10, #d^-1
+	"k_hyd_ch1": 0.1, #d^-1
+	"k_hyd_pr1": 0.1, #d^-1
+	"k_hyd_li1": 0.1, #d^-1
     "k_hyd_ch2": 5.22, #d^-1
 	"k_hyd_pr2": 1.86, #d^-1
 	"k_hyd_li2": 1.24, #d^-1
