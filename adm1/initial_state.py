@@ -35,7 +35,7 @@ X_pr2 = (1-mixing_ratio)*(47.76/(205+47.76+6.925))*0.00001 #kg COD.m^-3
 X_li2 = (1-mixing_ratio)*(6.925/(205+47.76+6.925))*0.00001 #kg COD.m^-3
 #_________________________________________
 
-variation_factor=50
+variation_factor=1
 
 
 X_su = 1.41 #kg COD.m^-3
