@@ -1,10 +1,12 @@
-from adm1.params import *  # imports model parameters and initial states
+#from adm1.params import *  # imports model parameters and initial states
 
 
 # Function for calculating the derivatives related to ADM1 system of equations from the Rosen et al (2006) BSM2 report.
 # state_zero: current dynamic state vector (length 42)
 # state_input: influent / feed state vector (length 30) for this timestep
-def ADM1_ODE(t, state_zero, state_input):
+def ADM1_ODE(t, state_zero, state_input,params):
+  for k, v in params.items():
+    globals()[k] = v
   global S_nh4_ion, S_co2, p_gas, q_gas, q_ch4
   S_su = state_zero[0]
   S_aa = state_zero[1]
@@ -313,4 +315,3 @@ def ADM1_ODE(t, state_zero, state_input):
 
 
   return diff_S_su, diff_S_aa, diff_S_fa, diff_S_va, diff_S_bu, diff_S_pro, diff_S_ac, diff_S_h2, diff_S_ch4, diff_S_IC, diff_S_IN, diff_S_I, diff_X_xc1, diff_X_ch1, diff_X_pr1, diff_X_li1, diff_X_xc2, diff_X_ch2, diff_X_pr2, diff_X_li2 ,diff_X_su, diff_X_aa, diff_X_fa, diff_X_c4, diff_X_pro, diff_X_ac, diff_X_h2, diff_X_I, diff_S_cation, diff_S_anion, diff_S_H_ion, diff_S_va_ion,  diff_S_bu_ion, diff_S_pro_ion, diff_S_ac_ion, diff_S_hco3_ion, diff_S_co2,  diff_S_nh3, diff_S_nh4_ion, diff_S_gas_h2, diff_S_gas_ch4, diff_S_gas_co2
-

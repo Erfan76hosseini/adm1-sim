@@ -8,7 +8,43 @@ from adm1.params import *
 # Function for DAE equations adopted from the Rosen et al (2006) BSM2 report bmadm1_report
 # Function for DAE equations adopted from the Rosen et al (2006) BSM2 report bmadm1_report
 
-def DAESolve(state):
+def DAESolve(state, state_input, params):
+    for k, v in params.items():
+        globals()[k] = v
+
+    S_su_in = state_input[0]
+    S_aa_in = state_input[1]
+    S_fa_in = state_input[2]
+    S_va_in = state_input[3]
+    S_bu_in =  state_input[4]
+    S_pro_in =  state_input[5]
+    S_ac_in =  state_input[6]
+    S_h2_in =   state_input[7]
+    S_ch4_in = state_input[8]
+    S_IC_in = state_input[9]
+    S_IN_in =  state_input[10]
+    S_I_in = state_input[11]
+
+    X_xc1_in =  state_input[12]
+    X_ch1_in = state_input[13]
+    X_pr1_in = state_input[14]
+    X_li1_in =  state_input[15]
+    
+    X_xc2_in =  state_input[16]
+    X_ch2_in = state_input[17]
+    X_pr2_in = state_input[18]
+    X_li2_in =  state_input[19]  
+        
+    X_su_in =  state_input[20]
+    X_aa_in =  state_input[21]
+    X_fa_in =  state_input[22]
+    X_c4_in =  state_input[23]
+    X_pro_in =  state_input[24]
+    X_ac_in =  state_input[25]
+    X_h2_in =  state_input[26]
+    X_I_in = state_input[27]
+    S_cation_in = state_input[28]
+    S_anion_in = state_input[29]
     (S_su, S_aa, S_fa, S_va, S_bu, S_pro, S_ac, S_h2, S_ch4, S_IC, S_IN, S_I,
      X_xc1, X_ch1, X_pr1, X_li1, X_xc2, X_ch2, X_pr2, X_li2,
      X_su, X_aa, X_fa, X_c4, X_pro, X_ac, X_h2, X_I, S_cation, S_anion,
