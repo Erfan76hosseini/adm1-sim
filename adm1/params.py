@@ -1,4 +1,6 @@
 import numpy as np
+from adm1.influent import get_influent
+from adm1.initial_state import get_initial_state
 
 
 
@@ -307,3 +309,125 @@ def get_adm1_params(T_ad, T_base, parameter_set, mixing_ratio):
         })
 
         return params
+
+
+def get_VSS(    
+            influent=None,              # Optional: pass custom influent dict
+            initials=None,
+            mixing_ratio=0.9999              # Optional: pass custom initial state dict
+):
+        lambda_X_ch=1.18  # kg COD.kg biomass-1
+        lambda_X_pr= 1.53  # kg COD.kg biomass-1
+        lambda_X_li= 2.87  # kg COD.kg biomass-1
+        lambda_X_su= 1.41  # kg COD.kg biomass-1
+        lambda_X_aa= 1.41  # kg COD.kg biomass-1
+        lambda_X_fa= 1.41  # kg COD.kg biomass-1
+        lambda_X_c4= 1.41  # kg COD.kg biomass-1
+        lambda_X_pro= 1.41 # kg COD.kg biomass-1
+        lambda_X_ac= 1.41   # kg COD.kg biomass-1
+
+
+        if influent is None:
+             influent = get_influent(mixing_ratio)
+        else:
+             influent = influent
+
+        S_su_in = influent['S_su_in']
+        S_aa_in = influent['S_aa_in']
+        S_fa_in = influent['S_fa_in']
+        S_va_in = influent['S_va_in']
+        S_bu_in = influent['S_bu_in']
+        S_pro_in = influent['S_pro_in']
+        S_ac_in = influent['S_ac_in']
+        S_h2_in = influent['S_h2_in']
+        S_ch4_in = influent['S_ch4_in']
+        S_IC_in = influent['S_IC_in']
+        S_IN_in = influent['S_IN_in']
+        S_I_in = influent['S_I_in']
+        X_xc1_in = influent['X_xc1_in']
+        X_ch1_in = influent['X_ch1_in']
+        X_pr1_in = influent['X_pr1_in']
+        X_li1_in = influent['X_li1_in']
+        X_xc2_in = influent['X_xc2_in']
+        X_ch2_in = influent['X_ch2_in']
+        X_pr2_in = influent['X_pr2_in']
+        X_li2_in = influent['X_li2_in']
+        X_su_in = influent['X_su_in']
+        X_aa_in = influent['X_aa_in']
+        X_fa_in = influent['X_fa_in']
+        X_c4_in = influent['X_c4_in']
+        X_pro_in = influent['X_pro_in']
+        X_ac_in = influent['X_ac_in']
+        X_h2_in = influent['X_h2_in']
+        X_I_in = influent['X_I_in']
+        S_cation_in = influent['S_cation_in']
+        S_anion_in = influent['S_anion_in']
+
+        # Initial state
+        if initials is None:
+            initial_state = get_initial_state(mixing_ratio)
+        else:
+            initial_state = initials
+
+        S_su=initial_state['S_su']
+        S_aa=initial_state['S_aa']
+        S_fa=initial_state['S_fa']
+        S_va=initial_state['S_va']
+        S_bu=initial_state['S_bu']
+        S_pro=initial_state['S_pro']
+        S_ac=initial_state['S_ac']
+        S_h2=initial_state['S_h2']
+        S_ch4=initial_state['S_ch4']
+        S_IC=initial_state['S_IC']
+        S_IN=initial_state['S_IN']
+        S_I=initial_state['S_I']
+        X_xc1=initial_state['X_xc1']
+        X_ch1=initial_state['X_ch1']
+        X_pr1=initial_state['X_pr1']
+        X_li1=initial_state['X_li1']
+        X_xc2=initial_state['X_xc2']
+        X_ch2=initial_state['X_ch2']
+        X_pr2=initial_state['X_pr2']
+        X_li2=initial_state['X_li2']
+        X_su=initial_state['X_su']
+        X_aa=initial_state['X_aa']
+        X_fa=initial_state['X_fa']
+        X_c4=initial_state['X_c4']
+        X_pro=initial_state['X_pro']
+        X_ac=initial_state['X_ac']
+        X_h2=initial_state['X_h2']
+        X_I=initial_state['X_I']
+        S_cation=initial_state['S_cation']
+        S_anion=initial_state['S_anion']
+        pH=initial_state['pH']
+        S_H_ion=initial_state['S_H_ion']
+        S_va_ion=initial_state['S_va_ion']
+        S_bu_ion=initial_state['S_bu_ion']
+        S_pro_ion=initial_state['S_pro_ion']
+        S_ac_ion=initial_state['S_ac_ion']
+        S_hco3_ion=initial_state['S_hco3_ion']
+        S_nh3=initial_state['S_nh3']
+        S_nh4_ion=initial_state['S_nh4_ion']
+        S_co2=initial_state['S_co2']
+        S_gas_h2=initial_state['S_gas_h2']
+        S_gas_ch4=initial_state['S_gas_ch4']
+        S_gas_co2=initial_state['S_gas_co2']
+
+
+        VSS= X_ch1_in/lambda_X_ch+X_ch2_in/lambda_X_ch+ X_pr1_in/lambda_X_pr+X_pr2_in/lambda_X_pr+X_li1_in/lambda_X_li+X_li2_in/lambda_X_li+X_su/lambda_X_su+X_aa/lambda_X_aa+X_fa/lambda_X_fa+X_c4/lambda_X_c4+X_pro/lambda_X_pro+X_ac/lambda_X_ac
+
+        # Lambda values for particulate biomass components in ADM1
+        # Each lambda_X_* represents the conversion factor from biomass to COD (kg COD per kg biomass)
+        # These are used for stoichiometric calculations in the ADM1 model
+        # Units: kg COD / kg biomass
+        return {
+            'lambda_X_ch': 1.18,  # Carbohydrate
+            'lambda_X_pr': 1.53,  # Protein
+            'lambda_X_li': 2.87,  # Lipid
+            'lambda_X_su': 1.41,  # Sugar
+            'lambda_X_aa': 1.41,  # Amino acid
+            'lambda_X_fa': 1.41,  # Fatty acid
+            'lambda_X_c4': 1.41,  # Butyrate/Valerate
+            'lambda_X_pro': 1.41, # Propionate
+            'lambda_X_ac': 1.41   # Acetate
+        }
