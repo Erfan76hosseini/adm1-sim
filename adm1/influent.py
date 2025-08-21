@@ -1,48 +1,60 @@
 
 import numpy as np
-
+from adm1.params import get_VSS 
 
 
 # ---  Reactor Setup ---
 def reactor_setup(
+    influent,               # Influent scenario function
+    initial_state,          # Initial state scenario function
     q_ad_init,                # Initial influent flow rate [m^3/d]
-    density,                # Influent density [kg/m^3]
-    water_fraction,         # Fraction of water in influent
-    evaporated_water_volume, # Water lost to evaporation [m^3/d]
+    density,                    # Influent density [tonne/m^3]
+    VS_per_TS,                # Volatile solids per  total solids [kg VS/kg TS]    
+    TS_fraction,         # Fraction of water in influent
     mixing_ratio,   # Fraction for feed 1 # feed1 / total (can be overridden per scenario)
-    OLR                     # Organic Loading Rate [kg VS/m3/d]
+    OLR,                        # Organic Loading Rate [kg VS/m3/d]
+    recycle_ratio                # Recycle ratio [m^3/d]
 ):
     """
     Calculate influent and reactor parameters for ADM1.
     Returns a dict with all relevant values.
     """
-    # Volatile solids (VS) fraction and content
-    vs_frac = 1 - water_fraction  # [kg VS/kg total]
-    vs_content = vs_frac * q_ad_init  # [m^3/d] (approximate, if 1 kg VS ~ 1 L)
-
-    # Adjust for evaporation
-    water_content = water_fraction * q_ad_init - evaporated_water_volume  # [m^3/d]
-    q_ad = water_content + vs_content  # New total influent flow [m^3/d]
+    VSS=get_VSS(influent,q_ad_init, mixing_ratio) #tonne/day
+    TS=VSS / VS_per_TS  # Total solids [tonne TS/day]
+    water_content=(TS*(1-TS_fraction))/TS_fraction # [tonne/d]
+    q_in = (water_content + TS)/density  # New total influent flow [m^3/d]
 
     # Feed split
-    q_ad1 = mixing_ratio * q_ad
-    q_ad2 = q_ad - q_ad1
+    q_in1 = mixing_ratio * q_in
+    q_in2 = q_in - q_in1
+
+    #Digestate (liquid effluent) flowrate (m^3/d)
+    q_out=q_in/(1-recycle_ratio)
+
+    # Recycle flowrate (m^3/d)
+    q_r=recycle_ratio*q_out
+
+    q_ad = q_out
+
+    VS_in=get_VSS(influent,q_ad_init, mixing_ratio)+get_VSS(initial_state,q_ad, mixing_ratio) #[tonne/d]
 
     # Recalculate VS fraction after evaporation
-    vs_frac_actual = vs_content / q_ad if q_ad > 0 else 0
-    VS_in = density * q_ad * vs_frac_actual * 0.001  # [tonne/d]
+    #vs_frac_actual = vs_content / q_ad if q_ad > 0 else 0
+    #VS_in = density * q_ad * vs_frac_actual * 0.001  # [tonne/d]
 
     # Hydraulic Retention Time (HRT) and reactor volumes
-    HRT = density * vs_frac_actual / OLR if OLR > 0 else 0  # [days]
+    HRT = VS_in*1000 / (q_ad*OLR*(1+recycle_ratio)) if OLR > 0 else 0  # [days]
     V_liq = HRT * q_ad  # [m^3]
     V_gas = 0.1 * V_liq # [m^3]
     V_ad = V_liq + V_gas # [m^3]
 
     return {
+        'q_in': q_in,
+        'q_in1': q_in1,
+        'q_in2': q_in2,
         'q_ad': q_ad,
-        'q_ad1': q_ad1,
-        'q_ad2': q_ad2,
-        'vs_frac': vs_frac_actual,
+        'q_out': q_out,
+        'q_r': q_r,
         'VS_in': VS_in,
         'HRT': HRT,
         'V_liq': V_liq,
@@ -50,8 +62,6 @@ def reactor_setup(
         'V_ad': V_ad,
         'OLR': OLR,
         'density': density,
-        'water_fraction': water_fraction,
-        'evaporated_water_volume': evaporated_water_volume,
         'mixing_ratio': mixing_ratio
     }
 
